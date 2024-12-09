@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #222;
+            color: white;
+            font-family: 'Arial', sans-serif;
+        }
+        canvas {
+            border: 2px solid white;
+            background-color: #000;
+        }
+        h1 {
+            position: absolute;
+            top: 20px;
+            font-size: 30px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Snake Game</h1>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let snake = [{ x: 9 * gridSize, y: 9 * gridSize }];
+        let food = generateFood();
+        let direction = { x: 0, y: 0 }; // Initially, the snake does not move
+        let score = 0;
+        let gameOver = false;
+
+        // Start the game loop only after the first key press
+        let gameStarted = false;
+
+        // Listen for keydown events to change the snake's direction
+        document.addEventListener("keydown", (event) => {
+            if (!gameStarted) {
+                gameStarted = true; // The game starts when you press an arrow key
+                gameLoop();
+            }
+            changeDirection(event);
+        });
+
+        function gameLoop() {
+            if (gameOver) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = "white";
+                ctx.font = "30px Arial";
+                ctx.fillText("Game Over! Score: " + score, canvas.width / 4, canvas.height / 2);
+                return;
+            }
+
+            // Move the snake
+            const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+            // Check for collisions with walls
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                gameOver = true;
+            }
+
+            // Check for collisions with itself
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver = true;
+                    break;
+                }
+            }
+
+            // Add the new head to the snake
+            snake.unshift(head);
+
+            // Check if the snake ate food
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                food = generateFood(); // Generate new food
+            } else {
+                snake.pop(); // Remove the last part of the snake
+            }
+
+            // Draw everything
+            draw();
+
+            // Keep the game loop running
+            if (!gameOver) {
+                setTimeout(gameLoop, 100); // Run the game every 100ms
+            }
+        }
+
+        function draw() {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the snake
+            ctx.fillStyle = "lime";
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillRect(snake[i].x, snake[i].y, gridSize, gridSize);
+            }
+
+            // Draw the food
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, gridSize, gridSize);
+
+            // Draw the score
+            ctx.fillStyle = "white";
+            ctx.font = "16px Arial";
+            ctx.fillText("Score: " + score, 10, 20);
+        }
+
+        function generateFood() {
+            const x = Math.floor(Math.random() * tileCount) * gridSize;
+            const y = Math.floor(Math.random() * tileCount) * gridSize;
+            return { x, y };
+        }
+
+        function changeDirection(event) {
+            if (gameOver) return; // Don't allow direction change after game over
+
+            switch (event.keyCode) {
+                case 37: // Left arrow
+                    if (direction.x === 0) direction = { x: -gridSize, y: 0 };
+                    break;
+                case 38: // Up arrow
+                    if (direction.y === 0) direction = { x: 0, y: -gridSize };
+                    break;
+                case 39: // Right arrow
+                    if (direction.x === 0) direction = { x: gridSize, y: 0 };
+                    break;
+                case 40: // Down arrow
+                    if (direction.y === 0) direction = { x: 0, y: gridSize };
+                    break;
+            }
+        }
+    </script>
+
+</body>
+</html>
+
+
